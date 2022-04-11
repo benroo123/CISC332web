@@ -1,0 +1,235 @@
+drop database if exists covidDB;
+
+create database if not exists covidDB;
+
+use covidDB;
+
+create table Company(
+       name varchar(40) not null primary key,
+       street varchar(40),
+       city varchar(40),
+       province char(2),
+       postalCode char(7)
+);
+
+create table Vaccine(
+	lot char(6) not null primary key,
+	productionDate date not null,
+	expiryDate date not null,
+	doses integer,
+	producedBy varchar(40) not null,
+	foreign key (producedBy) references Company(name)
+);
+
+
+create table VaxClinic(
+	name varchar(40) not null primary key,
+       street varchar(40),
+       city varchar(40),
+       province char(2),
+       postalCode char(6)
+);
+
+Create table shipsTo(
+	lotNumber char(6) not null,
+	clinic char(40) not null,
+	primary key(lotNumber, clinic),
+	foreign key (lotNumber) references vaccine(lot) on delete cascade,
+	foreign key (clinic) references VaxClinic(name) on delete cascade
+);
+
+Create table Patient(
+	OHIP char(20) not null primary key,
+	firstName varchar(40) not null,
+	lastName varchar(40) not null,
+	dob date not null
+);
+
+Create table Spouse(
+       OHIP char(20) not null primary key,
+	firstName varchar(40) not null,
+	lastName varchar(40) not null,
+	phone char(10),
+	spouseOHIP char(20) not null,
+	foreign key (spouseOHIP) references Patient(OHIP) on delete cascade
+);
+
+Create table Nurse(
+	ID char(20) not null primary key,
+	firstName varchar(40) not null,
+	lastName varchar(40) not null
+);
+
+
+Create table practice(
+	name char(40) not null primary key,
+	phone char(10)
+);
+
+
+Create table doctor(
+       ID char(20) not null primary key,
+	firstName varchar(40) not null,
+	lastName varchar(40) not null,
+	practiceName char(40),
+	foreign key (practiceName) references practice(name) on delete set null
+);
+
+Create table nurseCredentials(
+	ID char(20) not null,
+	Cred char(4) not null,
+	Primary key(ID, Cred),
+	Foreign key (ID) references Nurse(id) on delete cascade
+);
+
+Create table drCredentials(
+	ID char(20) not null,
+	Cred char(4) not null,
+	Primary key(ID, Cred),
+	Foreign key (ID) references Doctor(id) on delete cascade
+);
+
+
+
+Create table NurseWorksAt(
+	clinicName char(40) not null,
+	ID char(20) not null,
+	Primary key(clinicName, ID),
+	Foreign key (clinicName) references VaxClinic(name) on delete cascade,
+	Foreign key (ID) references Nurse(ID) on delete cascade
+);
+
+Create table DrWorksAt(
+	clinicName char(40) not null,
+	ID char(20) not null,
+	Primary key(clinicName, ID),
+	Foreign key (clinicName) references VaxClinic(name) on delete cascade,
+	Foreign key (ID) references Doctor(ID) on delete cascade
+);
+
+Create table Vaccination(
+	patientOHIP char(20) not null,
+	vaxClinic char(40) not null,
+	vaccineLot char(6) not null,
+	date datetime not null,
+	primary key(patientOHIP, vaxClinic, vaccineLot),
+	foreign key (patientOHIP) references Patient(OHIP) on delete restrict,
+	foreign key (vaxClinic) references vaxClinic(name) on delete restrict,
+	foreign key (vaccineLot) references vaccine(lot) on delete restrict
+);
+
+
+insert into company values
+('Pfizer','Princess St','Kingston','ON','312151'),
+('Moderna','University Avenue','Toronto','ON','322162'),
+('Astrazeneca','Yonge St','Boston',' MA','422173'),
+('Johnson & Johnson','Queen St','Boston','MA','522184')
+;
+
+insert into vaccine values
+('BGG750','2019-01-01','2022-01-09',100,'Pfizer'),
+('BGG760','2019-02-12','2022-02-09',200,'Pfizer'),
+('BGG770','2019-03-03','2022-03-09',2000,'Moderna'),
+('BGG780','2019-04-04','2022-04-09',100,'Moderna'),
+('BGG790','2019-05-05','2022-05-09',100,'Pfizer'),
+('BGG800','2019-05-15','2022-06-09',300,'Johnson & Johnson')
+;
+
+
+insert into vaxClinic values
+('Coscto','Bloor St','Kingston','ON','022151'),
+('GreatPharmacy','Babcock St','Kingston','Kingston','022162'),
+('CPharmacy','Prince St','Boston','MA','022173'),
+('GoodHealth','University Avenue','Boston','MA',' 022184'),
+('Target','Sunset St','Toronto','ON','022183'),
+('WuMing','Northwest St','Vancouver','BC','022193')
+;
+
+insert into shipsto values
+('BGG750','Coscto'),
+('BGG760','CPharmacy'),
+('BGG770','GreatPharmacy'),
+('BGG780','GoodHealth'),
+('BGG790','WuMing'),
+('BGG800','Target')
+;
+
+insert into patient values
+('202836','Liya', 'Wang', '2002-10-04'),
+('202837','Alex', 'Gao', '2003-10-10'),
+('202838','Pheobe','Wang','2004-10-12'),
+('202839','Aurora','Ye','2005-07-22'),
+('202840','Sophia','Lin','2006-07-08'),
+('202841','Tong','Chen','2007-10-12')
+;
+
+insert into patient values
+('202843', 'James','Kim','2000-07-12'),
+('202844', 'Andrew','Ding','2000-09-12'),
+('202845','Jayce','Bao','2000-08-06'),
+('202846','Alex','Wei','2000-03-17'),
+('202847','Vincent','Wang', '1999-12-21'),
+('202848','En','Mu','2000-04-04')
+;
+insert into spouse values
+('202836', 'James','Kim','1234567890', '202843'),
+('202837', 'Andrew','Ding','4162110879', '202844'),
+('202838','Jayce','Bao','3334485041', '202845'),
+('202839','Alex','Wei','789221390', '202846'),
+('202840','Vincent','Wang', '4586520531', '202847'),
+('202841','En','Mu','4592156076',  '202848')
+;                                
+	
+insert into practice values
+('Collaborative Practice', '4168200541'),
+('Differentiated Practice', '4168252235'),
+('Evidence-based Practice', '4167263098'),
+('Family Practice', '4168372695'),
+('General Practice', '3337703289'),
+('Nursing Practice', '3339051958')
+;
+
+insert into nurse values
+('Nu5738', 'Helen','Kai'),
+('Nu5739', 'Alison', 'Peng'),
+('Nu5740', 'Alex', 'Pein'),
+('Nu5741', 'Ben', 'Honda'),
+('Nu5742', 'June', 'Liu'),
+('Nu5743', 'Kelly', 'Porter')
+;
+
+insert into doctor values
+('Do7765', 'Lily', 'Smith', 'Nursing Practice'), 
+('Do7766', 'Jones', 'Oscar', 'General Practice'),
+('Do7767', 'Brown', 'James', 'Family Practice'),
+('Do7768', 'Evans', 'Chris', 'Evidence-based Practice'),
+('Do7769', 'Gavin', 'Billy', 'Differentiated Practice'),
+('Do7770', 'Wilson', 'David', 'Collaborative Practice')
+;
+
+insert into nurseworksat values
+('Coscto', 'Nu5738'),
+('GreatPharmacy', 'Nu5739'),
+('CPharmacy', 'Nu5740'),
+('GoodHealth', 'Nu5741'),
+('Target', 'Nu5742'),
+('WuMing', 'Nu5743')
+;
+
+insert into drworksat values
+('Coscto', 'Do7765'),
+('GreatPharmacy', 'Do7766'),
+('CPharmacy', 'Do7767'),
+('GoodHealth', 'Do7768'),
+('Target', 'Do7769'),
+('WuMing', 'Do7770')
+;
+
+insert into vaccination values
+('202837', 'Coscto', 'BGG750', '2022-03-29'),
+('202838', 'Target', 'BGG760', '2022-04-01'),
+('202839', 'Target', 'BGG760', '2022-01-11'),
+('202840', 'WuMing', 'BGG770', '2022-02-21'),
+('202841', 'GreatPharmacy', 'BGG780', '2022-02-15'),
+('202843', 'GoodHealth', 'BGG790', '2022-03-17')
+;
